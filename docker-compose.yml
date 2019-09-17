@@ -46,7 +46,7 @@ services:
       EXTERNAL_IP: SERVER_HOSTNAME
       Xmx: 2g
       profile: unix
-      additional_properties: additional_properties='--transactions.service.id=face-api_ws_osas --transactions.service.url=https://log.id3.eu/log'
+      additional_properties: '--transactions.service.id=face-api_ws_osas --transactions.service.url=https://log.id3.eu/log'
     volumes:
       - ./log/faceapi-backend:/usr/local/id3/facerestapi/logs
       - /usr/local/etc:/usr/local/etc
