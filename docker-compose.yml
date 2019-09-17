@@ -1,0 +1,56 @@
+version: '3.5'
+networks:
+  faceapi_network:
+    name: faceapi
+    ipam:
+      driver: default
+      config:
+        - subnet: 203.0.113.0/24
+
+services:
+  web-components:
+    networks:
+      faceapi_network:
+        ipv4_address: 203.0.113.4
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    image: registry.id3.eu/web-components:1.5.4
+    ports:
+    - "7002:80"
+    environment:
+      UPSTREAM_BACKEND_URL: 203.0.113.2:8085
+      FACE_API_URL: YOUR_DOMAIN_NAME
+      BASE_WEBSITE_URL: https://YOUR_DOMAIN_NAME
+      API_KEY: YOUR_API_KEY
+    volumes:
+      - ./log/web-components:/var/log/nginx/
+    restart: always
+
+  faceapi-backend:
+    networks:
+      faceapi_network:
+        ipv4_address: 203.0.113.2
+    deploy:
+      resources:
+        limits:
+          memory: 3g
+    privileged: true
+    image: registry.id3.eu/faceapi-backend:1.3.6
+    ports:
+    - "7000:8085"
+    - "9011:9011"
+    - "9021:9021"
+    environment:
+      EXTERNAL_IP: SERVER_HOSTNAME
+      Xmx: 2g
+      profile: unix
+      additional_properties: additional_properties='--transactions.service.id=face-api_ws_osas --transactions.service.url=https://log.id3.eu/log'
+    volumes:
+      - ./log/faceapi-backend:/usr/local/id3/facerestapi/logs
+      - /usr/local/etc:/usr/local/etc
+      - type: bind
+        source: /dev/nvme0n1p1
+        target: /dev/vda
+    restart: always
