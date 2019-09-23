@@ -48,7 +48,7 @@ services:
       profile: unix
       additional_properties: '--transactions.service.id=face-api_ws_osas --transactions.service.url=https://log.id3.eu/log'
     volumes:
-      - ./log/faceapi-backend:/usr/local/id3/facerestapi/logs
+      - ./log/faceapi-backend:/var/log/id3/facerestapi/logs
       - /usr/local/etc:/usr/local/etc
       - type: bind
         source: /dev/nvme0n1p1
