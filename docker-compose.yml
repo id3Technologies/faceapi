@@ -16,7 +16,7 @@ services:
       resources:
         limits:
           memory: 256m
-    image: registry.id3.eu/web-components:1.5.9
+    image: registry.id3.eu/web-components:1.5.10
     ports:
     - "7002:80"
     environment:
@@ -24,6 +24,7 @@ services:
       FACE_API_URL: YOUR_DOMAIN_NAME
       BASE_WEBSITE_URL: https://YOUR_DOMAIN_NAME
       API_KEY: YOUR_API_KEY
+      DOCUMENTATION_ENABLED: 'false'
     volumes:
       - ./log/web-components:/var/log/nginx/
     restart: always
