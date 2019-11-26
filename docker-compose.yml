@@ -16,15 +16,16 @@ services:
       resources:
         limits:
           memory: 256m
-    image: registry.id3.eu/web-components:1.5.10
+    image: registry.id3.eu/web-components:1.6.0
     ports:
     - "7002:80"
     environment:
       UPSTREAM_BACKEND_URL: 203.0.113.2:8085
-      FACE_API_URL: YOUR_DOMAIN_NAME
-      BASE_WEBSITE_URL: https://YOUR_DOMAIN_NAME
-      API_KEY: YOUR_API_KEY
-      DOCUMENTATION_ENABLED: 'false'
+      UPSTREAM_LICENSE_API_KEY_GATEWAY_URL: 203.0.113.5:8089
+      FACE_API_URL: web-components.srv.int.id3.eu
+      BASE_WEBSITE_URL: http://127.0.0.1:7000/
+      API_KEY: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJpZDMiLCJpYXQiOjE1NzQxNTkzMDIsIm1vZHVsZXMiOlsiZmFjZS1hcGkiXSwidXNlcm5hbWUiOiJhcGlrZXk6dGVzdCJ9.1PHxltSd94RI15EPCO87escFETblXGACLG3WgwtUJvg
+      DOCUMENTATION_ENABLED: 'true'
     volumes:
       - ./log/web-components:/var/log/nginx/
     restart: always
@@ -38,20 +39,121 @@ services:
         limits:
           memory: 3g
     privileged: true
-    image: registry.id3.eu/faceapi-backend:1.3.8
+    image: registry.id3.eu/faceapi-backend:1.4.0
     ports:
     - "7000:8085"
     - "9011:9011"
     - "9021:9021"
+    depends_on:
+      - "keycloak"
+      - "minio"
     environment:
-      EXTERNAL_IP: SERVER_HOSTNAME
+      EXTERNAL_IP: "127.0.0.1"
       Xmx: 2g
-      profile: unix
-      additional_properties: '--transactions.service.id=face-api_ws_osas --transactions.service.url=https://log.id3.eu/log'
+      profile: osas
+      additional_properties: '--transactions.service.id=face-api-staging --transactions.service.url=http://docker-staging.dmz.id3.lan:8004/log'
     volumes:
-      - ./log/faceapi-backend:/usr/local/id3/facerestapi/logs
+      - /log/faceapi-backend:/usr/local/id3/facerestapi/logs
       - /usr/local/etc:/usr/local/etc
       - type: bind
         source: /dev/nvme0n1p1
         target: /dev/vda
     restart: always
+
+  postgres:
+    networks:
+      faceapi_network:
+        ipv4_address: 203.0.113.8
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    image: postgres
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: 09d5e004-5136-4b77-a405-b0537684d59b
+    restart: always
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:5432"]
+        interval: 5s
+        timeout: 10s
+        retries: 5
+
+  keycloak:
+    networks:
+      faceapi_network:
+        ipv4_address: 203.0.113.6
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    image: registry.id3.eu/on-premise-keycloak:1.0.0
+    ports:
+    - "8070:8080"
+    depends_on:
+      - "postgres"
+    environment:
+      MODULE: face-api
+      INSTANCE_OWNER: OSAS
+      SECRET: 09d5e004-5136-4b77-a405-b0537684d59b
+    volumes:
+      - ./log/keycloak:/opt/jboss/keycloak/standalone/log/
+    restart: always
+
+  api-key-gateway:
+    networks:
+      faceapi_network:
+        ipv4_address: 203.0.113.5
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    privileged: true
+    image: registry.id3.eu/api-key-gateway:1.0.0
+    ports:
+    - "8089:8089"
+    - "9013:9011"
+    - "9023:9021"
+    depends_on:
+      - "keycloak"
+      - "minio"
+    environment:
+      EXTERNAL_IP: 127.0.0.1
+      Xmx: 512m
+      profile: osas
+    volumes:
+      - ./log/api-key-gateway:/usr/local/id3/licenseapikeygateway/logs
+      - /usr/local/etc:/usr/local/etc
+      - type: bind
+        source: /dev/nvme0n1p1
+        target: /dev/vda
+    restart: always
+
+  minio:
+    networks:
+      faceapi_network:
+        ipv4_address: 203.0.113.7
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    privileged: true
+    image: minio/minio:RELEASE.2019-10-12T01-39-57Z
+    ports:
+    - "9000:9000"
+    environment:
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: 09d5e004-5136-4b77-a405-b0537684d59b
+    command: server /data
+    volumes:
+      - /data/minio:/data
+      - type: bind
+        source: /dev/nvme0n1p1
+        target: /dev/vda
+    restart: always
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:9000"]
+        interval: 5s
+        timeout: 10s
+        retries: 5
