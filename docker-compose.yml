@@ -16,16 +16,16 @@ services:
       resources:
         limits:
           memory: 256m
-    image: registry.id3.eu/web-components:1.6.0
+    image: registry.id3.eu/web-components:${WEB_COMPONENTS_VERSION}
     ports:
     - "7002:80"
     environment:
       UPSTREAM_BACKEND_URL: 203.0.113.2:8085
       UPSTREAM_LICENSE_API_KEY_GATEWAY_URL: 203.0.113.5:8089
-      FACE_API_URL: web-components.srv.int.id3.eu
-      BASE_WEBSITE_URL: http://127.0.0.1:7000/
-      API_KEY: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJpZDMiLCJpYXQiOjE1NzQxNTkzMDIsIm1vZHVsZXMiOlsiZmFjZS1hcGkiXSwidXNlcm5hbWUiOiJhcGlrZXk6dGVzdCJ9.1PHxltSd94RI15EPCO87escFETblXGACLG3WgwtUJvg
-      DOCUMENTATION_ENABLED: 'true'
+      FACE_API_URL: ${FACE_API_URL}
+      BASE_WEBSITE_URL: ${BASE_WEBSITE_URL}
+      API_KEY: ${API_KEY}
+      DOCUMENTATION_ENABLED: ${DOCUMENTATION_ENABLED}
     volumes:
       - ./log/web-components:/var/log/nginx/
     restart: always
@@ -39,7 +39,7 @@ services:
         limits:
           memory: 3g
     privileged: true
-    image: registry.id3.eu/faceapi-backend:1.4.0
+    image: registry.id3.eu/faceapi-backend:${FACE_API_VERSION}
     ports:
     - "7000:8085"
     - "9011:9011"
@@ -50,10 +50,11 @@ services:
     environment:
       EXTERNAL_IP: "127.0.0.1"
       Xmx: 2g
-      profile: osas
+      profile: ${PROFILE}
+      #TODO Delete next line (only for test purpose)
       additional_properties: '--transactions.service.id=face-api-staging --transactions.service.url=http://docker-staging.dmz.id3.lan:8004/log'
     volumes:
-      - /log/faceapi-backend:/usr/local/id3/facerestapi/logs
+      - ./log/faceapi-backend:/usr/local/id3/facerestapi/logs
       - /usr/local/etc:/usr/local/etc
       - type: bind
         source: /dev/nvme0n1p1
@@ -72,7 +73,7 @@ services:
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: 09d5e004-5136-4b77-a405-b0537684d59b
+      POSTGRES_PASSWORD: ${SECRET}
     restart: always
     healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:5432"]
@@ -88,18 +89,24 @@ services:
       resources:
         limits:
           memory: 256m
-    image: registry.id3.eu/on-premise-keycloak:1.0.0
+    image: registry.id3.eu/on-premise-keycloak:${ON_PREMISE_KEYCLOAK_VERSION}
     ports:
     - "8070:8080"
     depends_on:
       - "postgres"
     environment:
+      DB_ADDR: 203.0.113.8:5432
       MODULE: face-api
-      INSTANCE_OWNER: OSAS
-      SECRET: 09d5e004-5136-4b77-a405-b0537684d59b
+      INSTANCE_OWNER: ${OWNER}
+      SECRET: ${SECRET}
     volumes:
       - ./log/keycloak:/opt/jboss/keycloak/standalone/log/
     restart: always
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8080/auth/realms/id3-license/.well-known/openid-configuration"]
+        interval: 5s
+        timeout: 10s
+        retries: 5
 
   api-key-gateway:
     networks:
@@ -110,7 +117,7 @@ services:
         limits:
           memory: 512m
     privileged: true
-    image: registry.id3.eu/api-key-gateway:1.0.0
+    image: registry.id3.eu/api-key-gateway:${API_KEY_GATEWAY_VERSION}
     ports:
     - "8089:8089"
     - "9013:9011"
@@ -121,7 +128,7 @@ services:
     environment:
       EXTERNAL_IP: 127.0.0.1
       Xmx: 512m
-      profile: osas
+      profile: ${PROFILE}
     volumes:
       - ./log/api-key-gateway:/usr/local/id3/licenseapikeygateway/logs
       - /usr/local/etc:/usr/local/etc
@@ -144,7 +151,7 @@ services:
     - "9000:9000"
     environment:
       MINIO_ACCESS_KEY: admin
-      MINIO_SECRET_KEY: 09d5e004-5136-4b77-a405-b0537684d59b
+      MINIO_SECRET_KEY: ${SECRET}
     command: server /data
     volumes:
       - /data/minio:/data
