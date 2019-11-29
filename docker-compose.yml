@@ -51,8 +51,6 @@ services:
       EXTERNAL_IP: "127.0.0.1"
       Xmx: 2g
       profile: ${PROFILE}
-      #TODO Delete next line (only for test purpose)
-      additional_properties: '--transactions.service.id=face-api-staging --transactions.service.url=http://docker-staging.dmz.id3.lan:8004/log'
     volumes:
       - ./log/faceapi-backend:/usr/local/id3/facerestapi/logs
       - /usr/local/etc:/usr/local/etc
@@ -130,7 +128,7 @@ services:
       Xmx: 512m
       profile: ${PROFILE}
     volumes:
-      - ./log/api-key-gateway:/usr/local/id3/licenseapikeygateway/logs
+      - ./log/api-key-gateway:/usr/local/id3/api-key-gateway/logs
       - /usr/local/etc:/usr/local/etc
       - type: bind
         source: /dev/nvme0n1p1
