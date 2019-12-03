@@ -1,0 +1,30 @@
+version: '3.5'
+networks:
+  faceapi_network:
+    name: faceapi
+    ipam:
+      driver: default
+      config:
+        - subnet: 203.0.113.0/24
+
+services:
+    web-components:
+        extends:
+            file: docker-compose.yml
+            service: web-components
+
+    faceapi-backend:
+        extends:
+            file: docker-compose.yml
+            service: faceapi-backend
+        environment:
+            additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --fileManager.server=http://${PRIMARY_INSTANCE}:9000 --clients.keycloak.admin=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license
+
+    api-key-gateway:
+        extends:
+            file: docker-compose.yml
+            service: api-key-gateway
+            environment:
+                additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --clients.keycloak.admin=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license
+
+
