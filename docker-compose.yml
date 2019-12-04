@@ -54,9 +54,6 @@ services:
     volumes:
       - ./log/faceapi-backend:/usr/local/id3/facerestapi/logs
       - /usr/local/etc:/usr/local/etc
-      - type: bind
-        source: /dev/nvme0n1p1
-        target: /dev/vda
     restart: always
 
   postgres:
@@ -68,16 +65,13 @@ services:
         limits:
           memory: 256m
     image: postgres
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: ${SECRET}
     restart: always
-    healthcheck:
-        test: ["CMD", "curl", "-f", "http://localhost:5432"]
-        interval: 5s
-        timeout: 10s
-        retries: 5
 
   keycloak:
     networks:
@@ -130,9 +124,6 @@ services:
     volumes:
       - ./log/api-key-gateway:/usr/local/id3/api-key-gateway/logs
       - /usr/local/etc:/usr/local/etc
-      - type: bind
-        source: /dev/nvme0n1p1
-        target: /dev/vda
     restart: always
 
   minio:
@@ -153,12 +144,4 @@ services:
     command: server /data
     volumes:
       - /data/minio:/data
-      - type: bind
-        source: /dev/nvme0n1p1
-        target: /dev/vda
     restart: always
-    healthcheck:
-        test: ["CMD", "curl", "-f", "http://localhost:9000"]
-        interval: 5s
-        timeout: 10s
-        retries: 5

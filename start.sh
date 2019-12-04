@@ -18,8 +18,8 @@ done
 
 if [ $primary = 1 ]
 then
-    docker-compose -d -f docker-compose.yml up
-elif
-    docker-compose -d -f docker-compose.secondary.yml up
+    docker-compose -f docker-compose.yml up -d
+else
+    docker-compose -f docker-compose.secondary.yml up -d
 fi
 
