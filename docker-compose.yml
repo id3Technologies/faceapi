@@ -51,6 +51,7 @@ services:
       EXTERNAL_IP: "127.0.0.1"
       Xmx: 2g
       profile: ${PROFILE}
+      additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --fileManager.server=http://${PRIMARY_INSTANCE}:9000 --clients.keycloak.admin.url=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license
     volumes:
       - ./log/faceapi-backend:/usr/local/id3/facerestapi/logs
       - /usr/local/etc:/usr/local/etc
@@ -121,6 +122,7 @@ services:
       EXTERNAL_IP: 127.0.0.1
       Xmx: 512m
       profile: ${PROFILE}
+      additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --clients.keycloak.admin.url=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license
     volumes:
       - ./log/api-key-gateway:/usr/local/id3/api-key-gateway/logs
       - /usr/local/etc:/usr/local/etc
