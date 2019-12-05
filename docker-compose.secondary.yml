@@ -9,22 +9,73 @@ networks:
 
 services:
     web-components:
-        extends:
-            file: docker-compose.yml
-            service: web-components
-
-    faceapi-backend:
-        extends:
-            file: docker-compose.yml
-            service: faceapi-backend
+        networks:
+          faceapi_network:
+            ipv4_address: 203.0.113.4
+        deploy:
+          resources:
+            limits:
+              memory: 256m
+        image: registry.id3.eu/web-components:${WEB_COMPONENTS_VERSION}
+        ports:
+        - "7002:80"
         environment:
-            additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --fileManager.server=http://${PRIMARY_INSTANCE}:9000 --clients.keycloak.admin=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license
+          UPSTREAM_BACKEND_URL: 203.0.113.2:8085
+          UPSTREAM_LICENSE_API_KEY_GATEWAY_URL: 203.0.113.5:8089
+          FACE_API_URL: ${FACE_API_URL}
+          BASE_WEBSITE_URL: ${BASE_WEBSITE_URL}
+          API_KEY: ${API_KEY}
+          DOCUMENTATION_ENABLED: ${DOCUMENTATION_ENABLED}
+        volumes:
+          - ./log/web-components:/var/log/nginx/
+        restart: always
+    
+    faceapi-backend:
+        networks:
+          faceapi_network:
+            ipv4_address: 203.0.113.2
+        deploy:
+          resources:
+            limits:
+              memory: 3g
+        privileged: true
+        image: registry.id3.eu/faceapi-backend:${FACE_API_VERSION}
+        ports:
+        - "7000:8085"
+        - "9011:9011"
+        - "9021:9021"
+        environment:
+          EXTERNAL_IP: "127.0.0.1"
+          Xmx: 2g
+          profile: ${PROFILE}
+          additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --fileManager.server=http://${PRIMARY_INSTANCE}:9000 --clients.keycloak.admin=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license
+        volumes:
+          - ./log/faceapi-backend:/usr/local/id3/facerestapi/logs
+          - /usr/local/etc:/usr/local/etc
+        restart: always
 
     api-key-gateway:
-        extends:
-            file: docker-compose.yml
-            service: api-key-gateway
-            environment:
-                additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --clients.keycloak.admin=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license
+        networks:
+            faceapi_network:
+                ipv4_address: 203.0.113.5
+        deploy:
+            resources:
+                limits:
+                    memory: 512m
+        privileged: true
+        image: registry.id3.eu/api-key-gateway:${API_KEY_GATEWAY_VERSION}
+        ports:
+        - "8089:8089"
+        - "9013:9011"
+        - "9023:9021"
+        environment:
+            additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --clients.keycloak.admin=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license
+            EXTERNAL_IP: 127.0.0.1
+            Xmx: 512m
+            profile: ${PROFILE}
+        volumes:
+            - ./log/api-key-gateway:/usr/local/id3/api-key-gateway/logs
+            - /usr/local/etc:/usr/local/etc
+        restart: always
 
 

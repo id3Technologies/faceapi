@@ -23,3 +23,4 @@ else
     docker-compose -f docker-compose.secondary.yml up -d
 fi
 
+sudo systemctl restart docker
