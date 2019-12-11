@@ -73,7 +73,7 @@ services:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: ${SECRET}
     volumes:
-      - ./kecloak-data:/var/lib/postgresql/data
+      - ./keycloak-data:/var/lib/postgresql/data
     restart: always
 
   keycloak:
