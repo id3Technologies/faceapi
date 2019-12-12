@@ -24,11 +24,30 @@ while [ "$1" != "" ]; do
     esac
 done
 
+if [ $primary = 0 ]
+then
+    # For slave instance, we check that the services on the primary instance are available and accessible
+    URL_KEYCLOAK=http://$PRIMARY_INSTANCE:8070
+    URL_MINIO=http://$PRIMARY_INSTANCE:9000
+    HTTP_CODE_KEYCLOAK=$(curl -sIk $URL_KEYCLOAK | grep "HTTP/1.1" | awk {'print $2'})
+    HTTP_CODE_MINIO=$(curl -sIk $URL_MINIO | grep "HTTP/1.1" | awk {'print $2'})
+    if [ "$HTTP_CODE_KEYCLOAK" != "200" ] || [ "$HTTP_CODE_MINIO" = "" ]
+    then
+        echo "${RED}Error : cannot start the setup process. The primary instance (master) is not ready or accessible.\n${NC}"
+        echo "Please verify that the primary instance is accessible on 8070 and 9000 ports from here.\n"
+        echo "To do this verification, you can either use curl, telnet or wget"
+        echo "For example, with telnet, the two next commands must responds \"Connected to $PRIMARY_INSTANCE\"\n"
+        echo "telnet $PRIMARY_INSTANCE 8070"
+        echo "telnet $PRIMARY_INSTANCE 9000\n"
+        exit 1
+    fi
+fi
+
 if [ -x "$(command -v firewall-cmd)" ]
 then
     echo "firewalld service is started on this server. Adding a rule to enable NAT. This is needed for the docker containers to communicate properly between them."
     firewall-cmd --zone=public --add-masquerade
-    echo "${GREEN}Firewalld is now properly configured : OK${NC}"
+    echo "${GREEN}Firewalld is now properly configured : OK${NC}\n"
 fi
 
 if [ $primary = 1 ]
@@ -40,7 +59,7 @@ else
     docker-compose -f docker-compose.secondary.yml up -d
 fi
 
-echo "${GREEN}Docker-compose setup done. All components are started.${NC}"
+echo "${GREEN}Docker-compose setup done. All components are started.${NC}\n"
 
 # Wait for keycloak to be ready before restarting
 if [ $primary = 1 ]
@@ -62,7 +81,7 @@ then
     done
     if [ "$HTTP_CODE_KEYCLOAK" = "200" ]
     then
-        echo "${GREEN}Keycloak is now ready : OK${NC}"
+        echo "${GREEN}Keycloak is now ready : OK${NC}\n"
     else
         echo "${RED}ERROR : Keycloak cannot be started... Please contact the support.${NC}"
         exit 1
@@ -71,7 +90,7 @@ fi
 
 echo "Restart Docker now... to finalize setup. Please wait."
 sudo systemctl restart docker
-echo "${GREEN}Docker is restarted... OK${NC}"
+echo "${GREEN}Docker is restarted... OK${NC}\n"
 
 if [ $primary = 1 ]
 then
