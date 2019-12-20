@@ -45,7 +45,7 @@ fi
 
 if [ -x "$(command -v firewall-cmd)" ]
 then
-    echo "firewalld service is started on this server. Adding a rule to enable NAT. This is needed for the docker containers to communicate properly between them."
+    echo "firewalld service is started on this server. Adding a rule to enable NAT. This is needed for the docker containers to communicate properly between them and to access the external world (internet)."
     firewall-cmd --zone=public --add-masquerade
     echo "${GREEN}Firewalld is now properly configured : OK${NC}\n"
 fi
