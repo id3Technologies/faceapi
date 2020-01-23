@@ -12,7 +12,7 @@ services:
   faceapi-backend-auth-alt:
     networks:
       faceapi_network:
-        ipv4_address: 203.0.113.9
+        ipv4_address: 203.0.113.10
     deploy:
       resources:
         limits:

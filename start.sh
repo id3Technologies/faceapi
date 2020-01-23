@@ -62,7 +62,7 @@ fi
 
 if [ $auth = 'both' ]
 then
-    export UPSTREAM_BACKEND_URL="203.0.113.9:8085"
+    export UPSTREAM_BACKEND_URL="203.0.113.10:8085"
     export UPSTREAM_AUTH_BACKEND_URL="203.0.113.2:8085"
 else
     export UPSTREAM_BACKEND_URL="203.0.113.2:8085"
