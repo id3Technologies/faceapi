@@ -24,6 +24,8 @@ while [ "$1" != "" ]; do
     esac
 done
 
+
+
 if [ $primary = 0 ]
 then
     # For slave instance, we check that the services on the primary instance are available and accessible
@@ -46,17 +48,46 @@ fi
 if [ -x "$(command -v firewall-cmd)" ]
 then
     echo "firewalld service is started on this server. Adding a rule to enable NAT. This is needed for the docker containers to communicate properly between them and to access the external world (internet)."
-    firewall-cmd --zone=public --add-masquerade
+    firewall-cmd --zone=public --add-masquerade --permanent
     echo "${GREEN}Firewalld is now properly configured : OK${NC}\n"
+fi
+
+if [ $auth = 'apikey' ]
+then
+    export AUTHENTICATION_MODE="API_KEY"
+else
+    # SSO by default
+    export AUTHENTICATION_MODE="KEYCLOACK"
+fi
+
+if [ $auth = 'both' ]
+then
+    export UPSTREAM_BACKEND_URL="203.0.113.9:8085"
+    export UPSTREAM_AUTH_BACKEND_URL="203.0.113.2:8085"
+else
+    export UPSTREAM_BACKEND_URL="203.0.113.2:8085"
+    export UPSTREAM_AUTH_BACKEND_URL="203.0.113.2:8085"
 fi
 
 if [ $primary = 1 ]
 then
     echo "Starting docker-compose setup - primary instance\n"
-    docker-compose -f docker-compose.yml up -d
+    if [ $auth = 'both' ]
+    then
+        echo "Authentication mode : both. 2 Face REST Api instance are needed, one for each authentication mode.\n"
+        docker-compose -f docker-compose.yml -f docker-compose-multi-auth-mode.yml up -d
+    else
+        docker-compose -f docker-compose.yml up -d
+    fi
 else
     echo "Starting docker-compose setup - secondary instance\n"
-    docker-compose -f docker-compose.secondary.yml up -d
+    if [ $auth = 'both' ]
+    then
+        echo "Authentication mode : both. 2 Face REST Api instance are needed, one for each authentication mode.\n"
+        docker-compose -f docker-compose.secondary.yml -f docker-compose-multi-auth-mode.yml up -d
+    else
+        docker-compose -f docker-compose.secondary.yml up -d
+    fi
 fi
 
 echo "${GREEN}Docker-compose setup done. All components are started.${NC}\n"

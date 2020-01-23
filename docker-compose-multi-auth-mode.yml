@@ -1,0 +1,34 @@
+version: '3.5'
+networks:
+  faceapi_network:
+    name: faceapi
+    ipam:
+      driver: default
+      config:
+        - subnet: 203.0.113.0/24
+
+services:
+
+  faceapi-backend-auth-alt:
+    networks:
+      faceapi_network:
+        ipv4_address: 203.0.113.9
+    deploy:
+      resources:
+        limits:
+          memory: 3g
+    privileged: true
+    image: registry.id3.eu/faceapi-backend:${FACE_API_VERSION}
+    ports:
+    - "7003:8085"
+    - "9014:9011"
+    - "9024:9021"
+    environment:
+      EXTERNAL_IP: "127.0.0.1"
+      Xmx: 2g
+      profile: ${PROFILE}
+      additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --fileManager.server=http://${PRIMARY_INSTANCE}:9000 --clients.keycloak.admin.url=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license --transactions.service.id=${API_KEY_MODULE} --application.authentication=API_KEY
+    volumes:
+      - ./log/faceapi-backend-auth-alt:/usr/local/id3/facerestapi/logs
+      - /usr/local/etc:/usr/local/etc
+    restart: always

@@ -20,7 +20,8 @@ services:
     ports:
     - "7002:80"
     environment:
-      UPSTREAM_BACKEND_URL: 203.0.113.2:8085
+      UPSTREAM_BACKEND_URL: ${UPSTREAM_BACKEND_URL}
+      UPSTREAM_AUTH_BACKEND_URL: ${UPSTREAM_AUTH_BACKEND_URL}
       UPSTREAM_LICENSE_API_KEY_GATEWAY_URL: 203.0.113.5:8089
       FACE_API_URL: ${FACE_API_URL}
       BASE_WEBSITE_URL: ${BASE_WEBSITE_URL}
@@ -51,7 +52,7 @@ services:
       EXTERNAL_IP: "127.0.0.1"
       Xmx: 2g
       profile: ${PROFILE}
-      additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --fileManager.server=http://${PRIMARY_INSTANCE}:9000 --clients.keycloak.admin.url=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license --transactions.service.id=${API_KEY_MODULE}
+      additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --fileManager.server=http://${PRIMARY_INSTANCE}:9000 --clients.keycloak.admin.url=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license --transactions.service.id=${API_KEY_MODULE} --application.authentication=${AUTHENTICATION_MODE}
     volumes:
       - ./log/faceapi-backend:/usr/local/id3/facerestapi/logs
       - /usr/local/etc:/usr/local/etc
