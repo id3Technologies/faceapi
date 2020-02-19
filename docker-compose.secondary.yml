@@ -37,7 +37,7 @@ services:
         deploy:
           resources:
             limits:
-              memory: 3200m
+              memory: 4000m
         privileged: true
         image: registry.id3.eu/faceapi-backend:${FACE_API_VERSION}
         ports:
