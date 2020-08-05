@@ -31,4 +31,5 @@ services:
     volumes:
       - ./log/faceapi-backend-auth-alt:/usr/local/id3/facerestapi/logs
       - /usr/local/etc:/usr/local/etc
+      - ./config:/usr/local/id3/facerestapi/config
     restart: always

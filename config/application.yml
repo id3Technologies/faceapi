@@ -1,0 +1,19 @@
+
+application:
+    padsession:
+        #Pad session duration (continue step) in seconds
+        duration: 25
+        #Max inactivity with the web socket before automatically close it
+        maxInactivity: 20
+        # Session must be unvalidated when user face is no more detected?
+        invalidateSessionFaceLost: false
+        threshold: 40
+        fmr: FalseMatchRate_100
+        maxConcurrentSessions: 12
+        challenge:
+            enabled: true
+            constraints: 3
+            minimalAmplitude: 15
+            centerBeforeNextChallenge: true
+            rotationTolerance: 60
+    matchMaxResultDefault: 2

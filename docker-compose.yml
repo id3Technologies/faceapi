@@ -56,6 +56,7 @@ services:
     volumes:
       - ./log/faceapi-backend:/usr/local/id3/facerestapi/logs
       - /usr/local/etc:/usr/local/etc
+      - ./config:/usr/local/id3/facerestapi/config
     restart: always
 
   postgres:
