@@ -9,6 +9,7 @@ Checkout the project and replace the variables in .env file by yours :
 - YOUR_SECRET
 - YOUR_PROFILE
 - YOUR_LICENSE_OWNER_NAME
+- YOUR_LICENSE_ACTIVATION_KEY
 
 
 You can obtain these 4 properties by asking us.

@@ -29,7 +29,7 @@ services:
         volumes:
           - ./log/web-components:/var/log/nginx/
         restart: always
-    
+
     faceapi-backend:
         networks:
           faceapi_network:
@@ -48,10 +48,9 @@ services:
           EXTERNAL_IP: "127.0.0.1"
           Xmx: 2g
           profile: ${PROFILE}
-          additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --fileManager.server=http://${PRIMARY_INSTANCE}:9000 --clients.keycloak.admin.url=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license
+          additional_properties: --spring.security.oauth2.client.provider.keycloak.issuer-uri=http://${PRIMARY_INSTANCE}:8070/auth/realms/id3-license --fileManager.server=http://${PRIMARY_INSTANCE}:9000 --clients.keycloak.admin.url=http://${PRIMARY_INSTANCE}:8070/auth/admin/realms/id3-license --application.activationKey=${LICENSE_ACTIVATION_KEY}
         volumes:
           - ./log/faceapi-backend:/usr/local/id3/facerestapi/logs
-          - /usr/local/etc:/usr/local/etc
           - ./config:/usr/local/id3/facerestapi/config
         restart: always
 
