@@ -27,6 +27,7 @@ services:
       BASE_WEBSITE_URL: ${BASE_WEBSITE_URL}
       API_KEY: ${API_KEY}
       DOCUMENTATION_ENABLED: ${DOCUMENTATION_ENABLED}
+      IS_CHALLENGE_PROOF_DISABLED: ${IS_CHALLENGE_PROOF_DISABLED}
     volumes:
       - ./log/web-components:/var/log/nginx/
     restart: always
